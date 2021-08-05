@@ -33,6 +33,37 @@ class ESLProcessInfo():
         (_, result) = await self._esl.send(
             'api json {"command" : "status", "data" : ""}')
         response = json.loads(result).get('response', {})
+        (_, reg_result) = await self._esl.send('api show registrations as json')
+        reg_response = json.loads(reg_result).get('row_count', {})
+        verto_result = await self._esl.send('api verto status')
+        for i in verto_result:
+            if "clients" in i:
+                res = i
+        verto_online_count = res.split(',')[1].split(" ")[1]
+        # add registrations count and idle cpu
+        process_vertocount_metric = GaugeMetricFamily(
+            'freeswitch_vertocount',
+            'Freeswitch_vertocount',
+        )
+        if reg_response:
+            vertocount = int(verto_online_count)
+            process_vertocount_metric.add_metric([], vertocount)
+
+        process_regcount_metric = GaugeMetricFamily(
+            'freeswitch_registrations_count',
+            'Freeswitch_registrations_count',
+        )
+        if reg_response:
+            reg_count = int(reg_response)
+            process_regcount_metric.add_metric([], reg_count)
+
+        process_idlecpu_metric = GaugeMetricFamily(
+            'freeswitch_idlecpu',
+            'FreeSWITCH idlecpu',
+        )
+        if 'idleCPU' in response:
+            idlecpu = (100 - response['idleCPU'].get('used', 0))
+            process_idlecpu_metric.add_metric([], idlecpu)
 
         process_info_metric = GaugeMetricFamily(
             'freeswitch_info',
@@ -73,7 +104,10 @@ class ESLProcessInfo():
         return itertools.chain([
             process_info_metric,
             process_status_metric,
-            process_memory_metric
+            process_memory_metric,
+            process_regcount_metric,
+            process_idlecpu_metric,
+            process_vertocount_metric
         ], process_session_metrics)
 
 
