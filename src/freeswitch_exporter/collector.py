@@ -17,10 +17,15 @@ from prometheus_client.core import GaugeMetricFamily
 from freeswitch_exporter.esl import ESL
 
 def getcps(call_json,key):
-    cps = 0
-    for i in (json.loads(call_json)['rows']):
-        if key in i['accountcode']:
-            cps = cps +1
+    if call_json['row_count'] != 0:
+        cps = 0
+        for i in (json.loads(call_json)['rows']):
+            if key in i['accountcode']:
+                cps = cps +1
+            else:
+                cps = 0
+    else:
+        cps = 0
     return cps
 class ESLProcessInfo():
     """
@@ -45,24 +50,16 @@ class ESLProcessInfo():
         saituo_cps = getcps(call_result,"saituo")
         callgroup_cps = getcps(call_result, "callgroup")
         ##add count saituo cps
-        if saituo_cps:
-            saituo_cps_value = int(saituo_cps)
-        else:
-            saituo_cps_value =0
         process_saituo_cps_metric = GaugeMetricFamily(
             'freeswitch_saituo_cps',
             'freeswitch_saituo_cps',
         )
-        process_saituo_cps_metric.add_metric([], saituo_cps_value)
-        if callgroup_cps:
-            callgroup_cps_value = int(callgroup_cps)
-        else:
-            callgroup_cps_value =0
+        process_saituo_cps_metric.add_metric([], saituo_cps)
         process_callgroup_cps_metric = GaugeMetricFamily(
             'freeswitch_callgroup_cps',
             'freeswitch_callgroup_cps',
         )
-        process_callgroup_cps_metric.add_metric([],  callgroup_cps_value)
+        process_callgroup_cps_metric.add_metric([],  callgroup_cps)
         for i in verto_result:
             if "clients" in i:
                 res = i
