@@ -60,10 +60,13 @@ class ESLProcessInfo():
             'freeswitch_callgroup_cps',
         )
         process_callgroup_cps_metric.add_metric([],  callgroup_cps)
-        for i in verto_result:
-            if "clients" in i:
-                res = i
-        verto_online_count = res.split(',')[1].split(" ")[1]
+        if "ERR" not in verto_result:
+            for i in verto_result:
+                if "clients" in i:
+                    res = i
+            verto_online_count = res.split(',')[1].split(" ")[1]
+        else:
+            verto_online_count = 0
         # add registrations count and idle cpu
         process_vertocount_metric = GaugeMetricFamily(
             'freeswitch_vertocount',
