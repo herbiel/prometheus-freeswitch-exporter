@@ -37,6 +37,7 @@ class ESLProcessInfo():
         reg_response = json.loads(reg_result).get('row_count', {})
         verto_result = await self._esl.send('api verto status')
         if "ERR" not in verto_result:
+            res = ""
             for i in verto_result:
                 if "clients" in i:
                     res = i
