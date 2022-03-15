@@ -50,19 +50,19 @@ class ESLProcessInfo():
         else:
             saituo_cps_value =0
         process_saituo_cps_metric = GaugeMetricFamily(
-            'Saituo_cps',
-            'Saituo_cps',
+            'freeswitch_saituo_cps',
+            'freeswitch_saituo_cps',
         )
-        process_saituo_cps_metric([], saituo_cps_value)
+        process_saituo_cps_metric.add_metric([], saituo_cps_value)
         if callgroup_cps:
             callgroup_cps_value = int(callgroup_cps)
         else:
             callgroup_cps_value =0
         process_callgroup_cps_metric = GaugeMetricFamily(
-            'Callgroup_cps',
-            'Callgroup_cps',
+            'freeswitch_callgroup_cps',
+            'freeswitch_callgroup_cps',
         )
-        process_callgroup_cps_metric([],  callgroup_cps_value)
+        process_callgroup_cps_metric.add_metric([],  callgroup_cps_value)
         for i in verto_result:
             if "clients" in i:
                 res = i
