@@ -36,10 +36,13 @@ class ESLProcessInfo():
         (_, reg_result) = await self._esl.send('api show registrations as json')
         reg_response = json.loads(reg_result).get('row_count', {})
         verto_result = await self._esl.send('api verto status')
-        for i in verto_result:
-            if "clients" in i:
-                res = i
-        verto_online_count = res.split(',')[1].split(" ")[1]
+        if "ERR" not in verto_result:
+            for i in verto_result:
+                if "clients" in i:
+                    res = i
+            verto_online_count = res.split(',')[1].split(" ")[1]
+        else:
+            verto_online_count = 0
         # add registrations count and idle cpu
         process_vertocount_metric = GaugeMetricFamily(
             'freeswitch_vertocount',
