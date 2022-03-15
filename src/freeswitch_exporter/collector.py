@@ -38,10 +38,11 @@ class ESLProcessInfo():
         verto_result = await self._esl.send('api verto status')
         if "ERR" not in verto_result:
             res = ""
+            verto_online_count = 0
             for i in verto_result:
                 if "clients" in i:
                     res = i
-            verto_online_count = res.split(',')[1].split(" ")[1]
+                    verto_online_count = res.split(',')[1].split(" ")[1]
         else:
             verto_online_count = 0
         # add registrations count and idle cpu
