@@ -16,7 +16,12 @@ from prometheus_client.core import GaugeMetricFamily
 
 from freeswitch_exporter.esl import ESL
 
-
+def getcps(call_json,key):
+    cps = 0
+    for i in (json.loads(call_json)['rows']):
+        if key in i['accountcode']:
+            cps = cps +1
+    return cps
 class ESLProcessInfo():
     """
     Process info async collector
@@ -36,6 +41,22 @@ class ESLProcessInfo():
         (_, reg_result) = await self._esl.send('api show registrations as json')
         reg_response = json.loads(reg_result).get('row_count', {})
         verto_result = await self._esl.send('api verto status')
+        call_result = await self._esl.send('api show calls as json')
+        saituo_cps = getcps(call_result,"saituo")
+        callgroup_cps = getcps(call_result, "callgroup")
+        ##add count saituo cps
+        if saituo_cps:
+        process_saituo_cps_metric = GaugeMetricFamily(
+            'Saituo_cps',
+            'Saituo_cps',
+        )
+        process_saituo_cps_metric([], int(callgroup_cps))
+        if callgroup_cps:
+        callgroup_cps_cps_metric = GaugeMetricFamily(
+            'Callgroup_cps',
+            'Callgroup_cps',
+        )
+        callgroup_cps_cps_metric([], int(callgroup_cps))
         for i in verto_result:
             if "clients" in i:
                 res = i
