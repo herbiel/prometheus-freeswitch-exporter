@@ -41,7 +41,7 @@ class ESLProcessInfo():
         (_, reg_result) = await self._esl.send('api show registrations as json')
         reg_response = json.loads(reg_result).get('row_count', {})
         verto_result = await self._esl.send('api verto status')
-        call_result = await self._esl.send('api show calls as json')
+        (_, call_result) = await self._esl.send('api show calls as json')
         saituo_cps = getcps(call_result,"saituo")
         callgroup_cps = getcps(call_result, "callgroup")
         ##add count saituo cps
