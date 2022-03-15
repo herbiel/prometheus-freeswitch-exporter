@@ -17,7 +17,7 @@ from prometheus_client.core import GaugeMetricFamily
 from freeswitch_exporter.esl import ESL
 
 def getcps(call_json,key):
-    if call_json['row_count'] != 0:
+    if json.loads(call_json)['row_count'] != 0:
         cps = 0
         for i in (json.loads(call_json)['rows']):
             if key in i['accountcode']:
