@@ -52,11 +52,11 @@ class ESLProcessInfo():
         )
         process_saituo_cps_metric([], int(callgroup_cps))
         if callgroup_cps:
-        callgroup_cps_cps_metric = GaugeMetricFamily(
+        process_callgroup_cps_cps_metric = GaugeMetricFamily(
             'Callgroup_cps',
             'Callgroup_cps',
         )
-        callgroup_cps_cps_metric([], int(callgroup_cps))
+        process_callgroup_cps_cps_metric([], int(callgroup_cps))
         for i in verto_result:
             if "clients" in i:
                 res = i
@@ -128,7 +128,9 @@ class ESLProcessInfo():
             process_memory_metric,
             process_regcount_metric,
             process_idlecpu_metric,
-            process_vertocount_metric
+            process_vertocount_metric,
+            process_saituo_cps_metric,
+            process_callgroup_cps_cps_metric
         ], process_session_metrics)
 
 
