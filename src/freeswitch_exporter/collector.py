@@ -9,7 +9,7 @@ import json
 import logging
 
 from contextlib import asynccontextmanager
-
+from collections import Counter
 from asgiref.sync import async_to_sync
 from prometheus_client import CollectorRegistry, generate_latest
 from prometheus_client.core import GaugeMetricFamily
@@ -22,6 +22,8 @@ def getcps(call_json,key):
         for i in (json.loads(call_json)['rows']):
             if key in i['accountcode']:
                 cps = cps +1
+            elif key in i['cid_name']:
+                cps = cps + 1
             else:
                 cps = 0
     else:
@@ -47,19 +49,23 @@ class ESLProcessInfo():
         reg_response = json.loads(reg_result).get('row_count', {})
         verto_result = await self._esl.send('api verto status')
         (_, call_result) = await self._esl.send('api show calls as json')
-        saituo_cps = getcps(call_result,"saituo")
-        callgroup_cps = getcps(call_result, "callgroup")
         ##add count saituo cps
-        process_saituo_cps_metric = GaugeMetricFamily(
-            'freeswitch_saituo_cps',
-            'freeswitch_saituo_cps',
-        )
-        process_saituo_cps_metric.add_metric([], saituo_cps)
-        process_callgroup_cps_metric = GaugeMetricFamily(
-            'freeswitch_callgroup_cps',
-            'freeswitch_callgroup_cps',
-        )
-        process_callgroup_cps_metric.add_metric([],  callgroup_cps)
+        process_cps_metrics = []
+        cid_name_list = []
+        accountcode_list = []
+        for row in json.loads(call_result).get('rows', []):
+            cid_name_list.append(row['cid_name'])
+            accountcode_list.append(row['accountcode'])
+        accountcode_dict = dict(Counter(accountcode_list))
+        cid_name_dict = dict(Counter(cid_name_list))
+        for cid_name in list(cid_name_dict.keys()):
+            cid_name_str = cid_name.split(' ')[0]
+            process_cps_metric = GaugeMetricFamily(
+                f'freeswitch_CPS_{cid_name_str}',
+                f'FreeSWITCH  {cid_name_str} name of  CPS',
+            )
+            process_cps_metric.add_metric([], cid_name_dict.get(cid_name))
+            process_cps_metrics.append(process_cps_metric)
         if "ERR" not in verto_result:
             res = ""
             verto_online_count = 0
@@ -136,10 +142,9 @@ class ESLProcessInfo():
             process_memory_metric,
             process_regcount_metric,
             process_idlecpu_metric,
-            process_vertocount_metric,
-            process_saituo_cps_metric,
-            process_callgroup_cps_metric
-        ], process_session_metrics)
+            process_vertocount_metric
+
+        ], process_session_metrics,process_cps_metrics)
 
 
 class ESLChannelInfo():
